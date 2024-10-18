@@ -30,9 +30,11 @@ urls3 = [
     "https://detail.tmall.com/item.htm?abbucket=4&id=811219664907&rn=9a3955472dc2b198240b0768039d3076&spm=a1z10.5-b-s.w4011-22044789678.48.6ecc7300twYOB8&sku_properties=134942334%3A25351185550"
 ]
 
+filepath = "src/results/product1.csv"
+
 for url in urls3:
     soup = fetch_and_parse(url)
     if soup:
-        write_to_file(soup)
+        write_to_file(soup, filepath)
     else:
         print("Failed to fetch the page")

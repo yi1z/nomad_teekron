@@ -76,8 +76,6 @@ STATUS = "active"
 
 # args = parser.parse_args()
 
-filepath = "src/results/product1.csv"
-
 def fetch_and_parse(url):
     # print(f"Fetching...\n")
     with sync_playwright() as p:
@@ -102,7 +100,7 @@ def fetch_and_parse(url):
             print("Failed to fetch the page")
             return None
     
-def write_to_file(soup):
+def write_to_file(soup, filepath):
     print("Reading data...\n")
     page_title = soup.title.string if soup.title else "No title"
     print(f"Title: {page_title}")
