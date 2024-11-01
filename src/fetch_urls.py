@@ -1,4 +1,5 @@
-from fetch_one_page import fetch_and_parse, write_to_file
+from login import login
+from fetch_one_page import fetch_and_parse, write_to_file, read_to_data
 
 
 urls1 = [
@@ -30,11 +31,46 @@ urls3 = [
     "https://detail.tmall.com/item.htm?abbucket=4&id=811219664907&rn=9a3955472dc2b198240b0768039d3076&spm=a1z10.5-b-s.w4011-22044789678.48.6ecc7300twYOB8&sku_properties=134942334%3A25351185550"
 ]
 
-filepath = "src/results/product1.csv"
+urls4 = [
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848965857802&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.28.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=849186908407&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.12.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848661446126&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.16.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848939581341&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.20.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848544191204&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.24.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=849185664395&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.32.1b9e2140PbrbsD&skuId=5638226453918",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848547203817&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.44.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=849183544754&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.40.1b9e2140PbrbsD&skuId=5635935660924",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848565503447&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.36.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848684646528&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.48.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848685658519&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.52.1b9e2140PbrbsD&skuId=5638224413957",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848549267086&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.56.1b9e2140PbrbsD&skuId=5803869034666",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848974365111&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.60.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848548639323&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.64.1b9e2140PbrbsD&skuId=5805604511407",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=849152628977&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.68.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848568079543&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.80.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848538095917&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.76.1b9e2140PbrbsD&skuId=5635803452205",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848671154484&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.72.1b9e2140PbrbsD&skuId=5638189597892",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=849180740512&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.84.1b9e2140PbrbsD&sku_properties=134942334%3A25351185550",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848683638510&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.88.1b9e2140PbrbsD&skuId=5805693267060",
+    "https://detail.tmall.com/item.htm?abbucket=4&id=848951973918&rn=aa2576e94d82215c33d193e624abc1c8&spm=a1z10.5-b-s.w4011-22044789678.92.1b9e2140PbrbsD&skuId=5805610471509"
+]
 
-for url in urls3:
-    soup = fetch_and_parse(url)
-    if soup:
-        write_to_file(soup, filepath)
-    else:
-        print("Failed to fetch the page")
+URLS = [
+    [],
+    urls1,
+    urls2,
+    urls3,
+    urls4
+]
+
+def main(urlIndex, filepath, need_login=False):
+    if need_login:
+        login()
+    for url in URLS[urlIndex]:
+        data = fetch_and_parse(url)
+        write_to_file(data, filepath)
+        # if soup:
+        #     data = read_to_data(soup, page)
+        #     # write_to_file(data, filepath)
+        # else:
+        #     print("Failed to fetch the page")

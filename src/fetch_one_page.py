@@ -55,6 +55,17 @@ COST_PER_ITEM_INDEX = 47
 PRICE_INTERNAIONAL_INDEX = 48
 COMPARE_AT_PRICE_INTERNATIONAL_INDEX = 49
 STATUS_INDEX = 50
+OPTION4_NAME_INDEX = 51
+OPTION4_VALUE_INDEX = 52
+OPTION5_NAME_INDEX = 53
+OPTION5_VALUE_INDEX = 54
+OPTION6_NAME_INDEX = 55
+OPTION6_VALUE_INDEX = 56
+OPTION7_NAME_INDEX = 57
+OPTION7_VALUE_INDEX = 58
+OPTIONS_NAME_INDEX = [OPTION1_NAME_INDEX, OPTION2_NAME_INDEX, OPTION3_NAME_INDEX, OPTION4_NAME_INDEX, OPTION5_NAME_INDEX, OPTION6_NAME_INDEX, OPTION7_NAME_INDEX]
+OPTIONS_VALUE_INDEX = [OPTION1_VALUE_INDEX, OPTION2_VALUE_INDEX, OPTION3_VALUE_INDEX, OPTION4_VALUE_INDEX, OPTION5_VALUE_INDEX, OPTION6_VALUE_INDEX, OPTION7_VALUE_INDEX]
+TOTAL_COLUMNS = 59
 
 VENDOR = "Nomad Teekron"
 PRODUCT_CATEGORY = "Arts & Entertainment > Hobbies & Creative Arts > Collectibles"
@@ -70,6 +81,11 @@ IMAGE_POSITION = 1
 VARIANT_WEIGHT_UNIT = "g"
 STATUS = "active"
 
+IMAGE_CLASS = "thumbnailPic--QasTmWDm"
+PRICE_CLASS = "text--fZ9NUhyQ"
+OPTION_BUTTON_CLASS = "valueItem--GzWd2LsV"
+OPTION_NAME_CLASS = "valueItemText--HiKnUqGa"
+
 # parser = argparse.ArgumentParser(description="Fetch and parse a page")
 # parser.add_argument("url", help="The URL of the page to fetch")
 # parser.add_argument("file", help="The file to write the data to")
@@ -81,8 +97,11 @@ def fetch_and_parse(url):
     with sync_playwright() as p:
         # launch a browser
         browser = p.chromium.launch()
+        # Load saved state
+        context = browser.new_context(storage_state="storage.json")
         # open a new page
-        page = browser.new_page()
+        page = context.new_page()
+        page.set_default_timeout(100000)
         # go to url
         page.goto(url)
         # wait for page to finish loading
@@ -91,31 +110,81 @@ def fetch_and_parse(url):
         # get the content
         content = page.content()
         # close the browser
-        browser.close()
+        # browser.close()
         soup = BeautifulSoup(content, "html.parser")
         if soup:
             print("Page fetched successfully\n")
-            return soup
         else:
             print("Failed to fetch the page")
-            return None
-    
-def write_to_file(soup, filepath):
+        
+        print("Reading data...\n")
+        page_title = soup.title.string if soup.title else "No title"
+        print(f"Title: {page_title}")
+
+        # get the title of the product
+        title = soup.find("h1").text
+        image = soup.find("img", class_=IMAGE_CLASS).get("src")
+        base_price = soup.find("span", class_=PRICE_CLASS).text
+
+        # get all the options listed
+        options = soup.find_all("div", class_=OPTION_BUTTON_CLASS)
+        option_names = soup.find_all("span", class_=OPTION_NAME_CLASS)
+        option_data = {}
+
+        for name in option_names:
+            page.click(f'text="{name.text}"')
+            page.wait_for_load_state("networkidle")
+            print(f"Clicked on {name.text}")
+            soup = BeautifulSoup(page.content(), "html.parser")
+            option_data[name.text] = soup.find("span", class_=PRICE_CLASS).text
+            print(f"Price: {option_data[name.text]}")
+
+        handle = title.replace(" ", "-")
+        handle = handle.encode('unicode_escape').decode('utf-8')
+        print("Data read successfully")
+        result = {"title": title, "image": image, "base_price": base_price, "handle": handle, "options": option_data}
+        print(result)
+        return result
+        
+def read_to_data(soup, page):
     print("Reading data...\n")
     page_title = soup.title.string if soup.title else "No title"
     print(f"Title: {page_title}")
 
     # get the title of the product
     title = soup.find("h1").text
-    image = soup.find("img", class_="thumbnailPic--QasTmWDm").get("src")
-    price = soup.find("span", class_="text--Mdqy24Ex").text
+    image = soup.find("img", class_=IMAGE_CLASS).get("src")
+    base_price = soup.find("span", class_=PRICE_CLASS).text
+
+    # get all the options listed
+    option_names = soup.find_all("span", class_=OPTION_NAME_CLASS)
+    option_data = {}
+
+    for name in option_names:
+        page.wait_for_load_state("networkidle")
+        print(f"Clicked on {name.text}")
+        soup = BeautifulSoup(page.content(), "html.parser")
+        option_data[name.text] = soup.find("span", class_=PRICE_CLASS).text
+        print(f"Price: {option_data[name.text]}")
+
     handle = title.replace(" ", "-")
     handle = handle.encode('unicode_escape').decode('utf-8')
     print("Data read successfully")
+    result = {"title": title, "image": image, "base_price": base_price, "handle": handle, "options": option_data}
+    print(result)
+    return result
+
+    
+def write_to_file(data, filepath):
+    title = data["title"]
+    image = data["image"]
+    price = data["base_price"]
+    handle = data["handle"]
+    options = data["options"]
 
     print("Writing to file...")
     with open(filepath, "a", encoding="utf-8-sig", newline='') as f:
-        new_line = [""] * (STATUS_INDEX + 1)
+        new_line = [""] * (TOTAL_COLUMNS + 1)
         new_line[HANDLE_INDEX] = handle
         new_line[TITLE_INDEX] = title
         new_line[VARIANT_PRICE_INDEX] = float(price) * PRICE_MULTIPLIER / BASE
@@ -131,6 +200,11 @@ def write_to_file(soup, filepath):
         new_line[VARIANT_TAXABLE_INDEX] = VARIANT_TAXABLE
         new_line[VARIANT_WEIGHT_UNIT_INDEX] = VARIANT_WEIGHT_UNIT
         new_line[STATUS_INDEX] = STATUS
+
+        for i, (name, value) in enumerate(options.items()):
+            print(i)
+            new_line[OPTIONS_NAME_INDEX[i]] = name
+            new_line[OPTIONS_VALUE_INDEX[i]] = value
 
         writer = csv.writer(f)
         writer.writerow(new_line)
