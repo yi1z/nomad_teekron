@@ -2,6 +2,9 @@
 
 ## Installation
 ```
+git clone https://github.com/yi1z/nomad_teekron.git
+python -m venv venv
+venv/Scripts/activate.bat
 pip install -r reqirements.txt
 playwright install
 ```
